@@ -3,10 +3,40 @@ import React, { useState } from 'react';
 const Login = () => {
   const [nss, setNss] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('Inicio de sesión:', { nss, password });
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', { // Ajusta la URL según tu backend
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nss, password }),
+      });
+
+      const data = await response.json();
+      setLoading(false);
+
+      if (!response.ok) {
+        setError(data.error || 'Error al iniciar sesión');
+        return;
+      }
+
+      // Guardar el token en localStorage para mantener la sesión
+      localStorage.setItem('token', data.token);
+      alert('Inicio de sesión exitoso');
+      
+      // Redirigir al usuario a la página principal
+      window.location.href = '/dashboard';
+
+    } catch (err) {
+      setError('Error de conexión con el servidor');
+      setLoading(false);
+    }
   };
 
   return (
@@ -22,6 +52,9 @@ const Login = () => {
         }}
       >
         <h2 style={{ textAlign: 'center', color: '#5E6472' }}>Iniciar Sesión</h2>
+
+        {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+
         <div style={{ marginBottom: '15px' }}>
           <label style={{ color: '#5E6472' }}>Número de Seguro Social</label>
           <input
@@ -37,6 +70,7 @@ const Login = () => {
             }}
           />
         </div>
+
         <div style={{ marginBottom: '15px' }}>
           <label style={{ color: '#5E6472' }}>Contraseña</label>
           <input
@@ -52,6 +86,7 @@ const Login = () => {
             }}
           />
         </div>
+
         <button
           type="submit"
           style={{
@@ -63,9 +98,11 @@ const Login = () => {
             borderRadius: '5px',
             cursor: 'pointer',
           }}
+          disabled={loading}
         >
-          Iniciar Sesión
+          {loading ? 'Cargando...' : 'Iniciar Sesión'}
         </button>
+
         <div style={{ marginTop: '15px', textAlign: 'center' }}>
           <a href="/register" style={{ color: '#5E6472' }}>
             ¿No tienes una cuenta? Regístrate
