@@ -6,7 +6,6 @@ const Login = () => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // Lógica para iniciar sesión
     console.log('Inicio de sesión:', { nss, password });
   };
 
