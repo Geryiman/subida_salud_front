@@ -1,13 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Profile = () => {
   const [user, setUser] = useState({
-    nombre: 'Juan Pérez',
-    nss: '123456789',
-    edad: 35,
-    sexo: 'Masculino',
+    nombre: '',
+    nss: '',
+    edad: '',
+    sexo: '',
     fotoPerfil: '',
   });
+  const [error, setError] = useState('');
+
+  const getDataUser = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('No se encontró el token de autenticación.');
+      return;
+    }
+
+    try {
+      const response = await fetch('https://bob-esponja-yh539.ondigitalocean.app/users/user', {
+        // headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al obtener los datos del perfil');
+      }
+
+      const data = await response.json();
+      setUser(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  useEffect(() => {
+    getDataUser();
+  }, []);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -31,6 +59,7 @@ const Profile = () => {
         }}
       >
         <h2 style={{ color: '#5E6472', marginBottom: '15px' }}>Perfil del Usuario</h2>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
         <img
           src={user.fotoPerfil || 'https://via.placeholder.com/150'}
           alt="Foto de perfil"

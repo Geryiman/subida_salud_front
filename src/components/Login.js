@@ -12,7 +12,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', { // Ajusta la URL según tu backend
+      const response = await fetch('https://bob-esponja-yh539.ondigitalocean.app/auth/login', { // Ajusta la URL según tu backend
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nss, password }),
@@ -28,6 +28,7 @@ const Login = () => {
 
       // Guardar el token en localStorage para mantener la sesión
       localStorage.setItem('token', data.token);
+      localStorage.setItem('nss', nss);
       alert('Inicio de sesión exitoso');
       
       // Redirigir al usuario a la página principal

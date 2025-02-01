@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = "https://bob-esponja-yh539.ondigitalocean.app/api";
+const API_URL = "https://bob-esponja-yh539.ondigitalocean.app";
 
 export const login = async (nss, password) => {
   const res = await axios.post(`${API_URL}/auth/login`, { nss, password });

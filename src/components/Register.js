@@ -8,16 +8,46 @@ const Register = () => {
     sexo: '',
     password: '',
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    // Lógica para registrar usuario
-    console.log('Registro de usuario:', formData);
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch('https://bob-esponja-yh539.ondigitalocean.app/auth/register', { // Ajusta la URL según tu backend
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      console.log(formData)
+
+      const data = await response.json();
+      setLoading(false);
+
+      if (!response.ok) {
+        setError(data.error || 'Error al registrar');
+        return;
+      }
+
+      // Guardar el token en localStorage para mantener la sesión
+      localStorage.setItem('token', data.token);
+      alert('Registro exitoso');
+      
+      // Redirigir al usuario a la página principal
+      window.location.href = '/dashboard';
+
+    } catch (err) {
+      setError('Error de conexión con el servidor');
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,6 +81,7 @@ const Register = () => {
             />
           </div>
         ))}
+        {error && <p style={{ color: 'red' }}>{error}</p>}
         <button
           type="submit"
           style={{
@@ -62,8 +93,9 @@ const Register = () => {
             borderRadius: '5px',
             cursor: 'pointer',
           }}
+          disabled={loading}
         >
-          Registrarse
+          {loading ? 'Registrando...' : 'Registrarse'}
         </button>
       </form>
     </div>
