@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const API_URL = "https://bob-esponja-yh539.ondigitalocean.app";
 
 const Profile = () => {
   const [user, setUser] = useState({
@@ -9,27 +12,21 @@ const Profile = () => {
     fotoPerfil: '',
   });
   const [error, setError] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const getDataUser = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('No se encontró el token de autenticación.');
+    const nss = localStorage.getItem('nss');
+    if (!nss) {
+      setError('No se encontró el NSS en el almacenamiento local.');
       return;
     }
 
     try {
-      const response = await fetch('https://bob-esponja-yh539.ondigitalocean.app/users/user', {
-        // headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al obtener los datos del perfil');
-      }
-
-      const data = await response.json();
+      const { data } = await axios.get(`${API_URL}/users/profile?nss=${nss}`);
       setUser(data);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || 'Error al obtener los datos del perfil');
     }
   };
 
@@ -40,9 +37,38 @@ const Profile = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onload = (event) => setUser({ ...user, fotoPerfil: event.target.result });
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setError('Selecciona una imagen para subir.');
+      return;
+    }
+
+    setLoading(true);
+    const nss = localStorage.getItem('nss');
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('nss', nss); // Enviar NSS en el formulario
+
+    try {
+      const { data } = await axios.post(`${API_URL}/users/uploadProfilePicture`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      setUser({ ...user, fotoPerfil: data.imageUrl });
+      setSelectedFile(null);
+      setError('');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al subir la imagen');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -70,25 +96,9 @@ const Profile = () => {
         <p style={{ color: '#5E6472' }}>Edad: {user.edad}</p>
         <p style={{ color: '#5E6472' }}>Sexo: {user.sexo}</p>
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          style={{ marginTop: '15px', display: 'block', margin: '0 auto' }}
-        />
-        <button
-          style={{
-            backgroundColor: '#B8F2E6',
-            color: '#5E6472',
-            padding: '10px',
-            marginTop: '15px',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            width: '100%',
-          }}
-        >
-          Actualizar Foto
+        <input type="file" accept="image/*" onChange={handleFileChange} />
+        <button onClick={handleUpload} disabled={loading}>
+          {loading ? 'Subiendo...' : 'Actualizar Foto'}
         </button>
       </div>
     </div>
